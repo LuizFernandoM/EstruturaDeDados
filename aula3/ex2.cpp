@@ -5,7 +5,7 @@ int main() {
     int tamanho = 10;
     int novo = 25;
 
-    // Inserção ordenada
+
     for (int i = tamanho; i > 2; i--) {
         cpfs_inativos[i] = cpfs_inativos[i - 1];
     }
@@ -13,7 +13,7 @@ int main() {
     cpfs_inativos[2] = novo;
     tamanho++;
 
-    // Mostrando o array atualizado
+
     printf("Array atualizado:\n");
     for (int i = 0; i < tamanho; i++) {
         printf("%d ", cpfs_inativos[i]);
