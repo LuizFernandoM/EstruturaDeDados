@@ -1,82 +1,61 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 typedef struct Semaforo {
-    int id;
+    char via[50];
     struct Semaforo *prox;
-    struct Semaforo *ant;
 } Semaforo;
 
-Semaforo* criarSemaforo(int id) {
-    Semaforo *novo = (Semaforo*)malloc(sizeof(Semaforo));
+// Cria um novo semáforo
+Semaforo* criarSemaforo(char via[]) {
+    Semaforo *novo = (Semaforo*) malloc(sizeof(Semaforo));
 
-    novo->id = id;
-    novo->prox = novo;
-    novo->ant = novo;
+    strcpy(novo->via, via);
+    novo->prox = NULL;
 
     return novo;
 }
 
-void inserirSemaforo(Semaforo **inicio, int id) {
+// Insere uma via na lista circular
+void inserirVia(Semaforo **inicio, char via[]) {
 
-    Semaforo *novo = criarSemaforo(id);
+    Semaforo *novo = criarSemaforo(via);
 
     if (*inicio == NULL) {
         *inicio = novo;
+        novo->prox = novo;
         return;
     }
 
-    Semaforo *ultimo = (*inicio)->ant;
+    Semaforo *ultimo = *inicio;
 
-    novo->prox = *inicio;
-    novo->ant = ultimo;
+    while (ultimo->prox != *inicio) {
+        ultimo = ultimo->prox;
+    }
 
     ultimo->prox = novo;
-    (*inicio)->ant = novo;
+    novo->prox = *inicio;
 }
 
-void removerSemaforo(Semaforo **inicio, int id) {
-
-    if (*inicio == NULL)
-        return;
-
-    Semaforo *atual = *inicio;
-
-    do {
-
-        if (atual->id == id) {
-
-            if (atual->prox == atual) {
-                free(atual);
-                *inicio = NULL;
-                return;
-            }
-
-            atual->ant->prox = atual->prox;
-            atual->prox->ant = atual->ant;
-
-            if (atual == *inicio)
-                *inicio = atual->prox;
-
-            free(atual);
-            return;
-        }
-
-        atual = atual->prox;
-
-    } while (atual != *inicio);
+// Avança para o próximo semáforo
+Semaforo* avancarSemaforo(Semaforo *atual) {
+    return atual->prox;
 }
 
-void exibirEstado(int id) {
+// Exibe o estado do semáforo atual
+void exibirSemaforo(char via[]) {
 
     printf("\n");
-    printf("=================================\n");
-    printf("       SEMAFORO %d\n", id);
-    printf("=================================\n");
+    printf("=========================================\n");
+    printf("          SMART CITY - ROTATORIA\n");
+    printf("=========================================\n");
+    printf(" VIA LIBERADA: %s\n", via);
+    printf("=========================================\n");
 
     printf("[🟢] VERDE\n");
-    sleep(1);
+    sleep(2);
 
     printf("[🟡] AMARELO\n");
     sleep(1);
@@ -84,50 +63,59 @@ void exibirEstado(int id) {
     printf("[🔴] VERMELHO\n");
     sleep(1);
 
-    printf("=================================\n");
+    printf("=========================================\n");
 }
 
-void mostrarSemaforos(Semaforo *inicio) {
+// Mostra a estrutura da lista circular
+void mostrarRotatoria(Semaforo *inicio) {
 
-    if (inicio == NULL) {
-        printf("Lista vazia!\n");
+    if (inicio == NULL)
         return;
-    }
 
     Semaforo *aux = inicio;
 
-    do {
-        exibirEstado(aux->id);
-        aux = aux->prox;
-    } while (aux != inicio);
-}
+    printf("\nESTRUTURA DA ROTATORIA:\n\n");
 
+    do {
+        printf("[%s]", aux->via);
+
+        aux = aux->prox;
+
+        if (aux != inicio)
+            printf(" -> ");
+
+    } while (aux != inicio);
+
+    printf(" -> (inicio)\n");
+}
 
 int main() {
 
-    Semaforo *lista = NULL;
+    Semaforo *rotatoria = NULL;
 
-    inserirSemaforo(&lista, 1);
-    inserirSemaforo(&lista, 2);
-    inserirSemaforo(&lista, 3);
-    inserirSemaforo(&lista, 4);
+    inserirVia(&rotatoria, "Avenida Principal");
+    inserirVia(&rotatoria, "Rua Norte");
+    inserirVia(&rotatoria, "Rua Sul");
+    inserirVia(&rotatoria, "Avenida Central");
 
-    printf("\n======== SISTEMA DE SEMAFOROS ========\n");
+    Semaforo *atual = rotatoria;
 
+    printf("=========================================\n");
+    printf("      SISTEMA DE CONTROLE DE TRAFEGO\n");
+    printf("=========================================\n");
 
-    mostrarSemaforos(lista);
+    mostrarRotatoria(rotatoria);
 
-    printf("\n>>> Adicionando Semaforo 5...\n");
+    printf("\nIniciando simulacao...\n");
 
-    inserirSemaforo(&lista, 5);
-    mostrarSemaforos(lista);
+    while (1) {
 
+        exibirSemaforo(atual->via);
 
+        atual = avancarSemaforo(atual);
 
-    printf("\n>>> Removendo Semaforo 3...\n");
-
-    removerSemaforo(&lista, 3);
-    mostrarSemaforos(lista);
+        sleep(1);
+    }
 
     return 0;
 }
